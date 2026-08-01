@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Specimen N° 47 — Digitalis purpurea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="stage" id="stage" aria-hidden="false">
+
+    <!-- back plane: the huge display type -->
+    <div class="plane plane--back" data-depth="0.25">
+      <h1 class="display">Digitalis</h1>
+    </div>
+
+    <!-- mid plane: the italic species, vernacular names -->
+    <div class="plane plane--mid" data-depth="0.55">
+      <span class="species">purpurea</span>
+      <p class="vernacular">foxglove &nbsp;·&nbsp; witch's bells &nbsp;·&nbsp; fairy caps</p>
+    </div>
+
+    <!-- front plane: everything meta — the eyebrow and the data slip -->
+    <div class="plane plane--front" data-depth="1">
+      <header class="eyebrow">
+        <span class="num">N° 47</span>
+        <span class="dot" aria-hidden="true">·</span>
+        <span class="genus">Genus Digitalis</span>
+      </header>
+
+      <footer class="slip">
+        <div>collected 12 · vi · 1898 &nbsp;—&nbsp; Sussex Downs</div>
+        <div>cat. KG-B / 47</div>
+      </footer>
+    </div>
+
+  </div>
+
+  <button class="permission" id="permission" hidden type="button">
+    Enable motion
+  </button>
+
+  <script src="./script.js"></script>
+</body>
+</html>

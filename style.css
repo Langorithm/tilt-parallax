@@ -1,0 +1,209 @@
+:root {
+  --bg: #0F1730;
+  --ink: #F0E8D2;
+  --ink-dim: #6E7A94;
+  --accent: #B45A85;
+
+  /* Parallax offsets, in px, set from JS. Both default to 0 so the layout
+     is stable if JS never runs. */
+  --tx: 0;
+  --ty: 0;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow: hidden;
+  /* A very quiet paper grain — one radial and one linear, both barely there.
+     Keeps the field from feeling like a flat coat of paint without adding
+     visual noise. */
+  background-image:
+    radial-gradient(1200px 800px at 30% 20%, rgba(255,255,255,0.04), transparent 60%),
+    radial-gradient(900px 600px at 80% 90%, rgba(180,90,133,0.06), transparent 55%);
+}
+
+body {
+  font-family: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  font-variation-settings: 'opsz' 24, 'wght' 400, 'SOFT' 100;
+  font-feature-settings: 'ss01', 'liga';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* -------- Stage & planes -------------------------------------------------- */
+
+.stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  /* A hair of perspective so translated planes feel volumetric rather than
+     merely sliding. */
+  perspective: 1400px;
+}
+
+.plane {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+  /* Each plane reads --depth and translates by --tx/--ty multiplied by it.
+     JS sets --tx/--ty on the stage; --depth is a per-plane constant. */
+  transform: translate3d(
+    calc(var(--tx) * var(--depth) * 1px),
+    calc(var(--ty) * var(--depth) * 1px),
+    0
+  );
+}
+
+.plane--back  { --depth: 0.25; }
+.plane--mid   { --depth: 0.55; }
+.plane--front { --depth: 1.00; }
+
+/* -------- Back plane: the giant display type ------------------------------ */
+
+.display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144, 'wght' 350, 'SOFT' 100;
+  font-size: clamp(3rem, 16.5vw, 16rem);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+
+  /* The display sits on the deepest plane. A tiny drop-in soft shadow makes
+     the collision with the mid-plane italic feel physical. */
+  text-shadow: 0 4px 40px rgba(0,0,0,0.45);
+}
+
+/* -------- Mid plane: species + vernacular --------------------------------- */
+
+.species {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-14%, 22%);
+
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 60;
+  font-size: clamp(2rem, 9vw, 8rem);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+}
+
+.vernacular {
+  position: absolute;
+  bottom: 22vh;
+  left: 8vw;
+  right: 8vw;
+  margin: 0;
+
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 14, 'wght' 340, 'SOFT' 40;
+  font-style: italic;
+  font-size: clamp(0.95rem, 1.4vw, 1.2rem);
+  letter-spacing: 0.02em;
+  color: var(--ink-dim);
+}
+
+/* -------- Front plane: eyebrow + slip ------------------------------------- */
+
+.eyebrow {
+  position: absolute;
+  top: max(24px, 4vh);
+  left: max(24px, 4vw);
+  right: max(24px, 4vw);
+
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 12, 'wght' 500, 'SOFT' 20;
+  font-size: 0.82rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.eyebrow .num { color: var(--accent); }
+.eyebrow .dot { color: var(--ink-dim); }
+
+.slip {
+  position: absolute;
+  bottom: max(24px, 4vh);
+  left: max(24px, 4vw);
+  right: max(24px, 4vw);
+
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  font-weight: 400;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  line-height: 1.7;
+  color: var(--ink-dim);
+}
+
+/* -------- Permission button (iOS only) ------------------------------------ */
+
+.permission {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 10;
+
+  appearance: none;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid rgba(240,232,210,0.35);
+  padding: 10px 18px;
+  border-radius: 999px;
+
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 14, 'wght' 400, 'SOFT' 50;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+  transition: border-color 200ms ease, color 200ms ease, opacity 300ms ease;
+}
+.permission:hover { border-color: var(--accent); color: var(--accent); }
+.permission:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* -------- Motion respect --------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .plane { transform: none !important; }
+}
+
+/* -------- Narrow-screen tuning -------------------------------------------- */
+
+@media (max-width: 640px) {
+  .display { transform: translate(-50%, -60%); }
+  .species { transform: translate(-18%, 32%); }
+  .vernacular {
+    bottom: 26vh;
+    text-align: left;
+  }
+  .eyebrow { font-size: 0.72rem; letter-spacing: 0.18em; }
+  .slip    { font-size: 0.72rem; }
+}
