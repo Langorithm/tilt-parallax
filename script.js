@@ -1,15 +1,13 @@
 (() => {
   const stage = document.getElementById('stage');
   const permissionBtn = document.getElementById('permission');
+  const status = document.getElementById('status');
 
-  // The target offset (updated by input) and the current offset (lerped toward
-  // target every frame). Range is roughly +/- 60 px at the front plane.
   const state = { tx: 0, ty: 0, targetX: 0, targetY: 0 };
   const RANGE = 60;
   const EASE = 0.09;
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
   function tick() {
@@ -20,12 +18,21 @@
     requestAnimationFrame(tick);
   }
 
+  // Calibrate to whatever angle the phone is at on the first reading — hold
+  // it however feels natural, and that becomes "neutral".
+  let refBeta = null, refGamma = null;
+  let receivedAny = false;
+
   function onOrientation(e) {
-    // gamma: left/right tilt in degrees, roughly -45..45 in normal handheld use
-    // beta:  front/back tilt in degrees; ~45 when the phone is held upright
     if (e.gamma == null || e.beta == null) return;
-    const gx = clamp(e.gamma / 35, -1, 1);
-    const gy = clamp((e.beta - 45) / 35, -1, 1);
+    receivedAny = true;
+    if (refBeta === null) {
+      refBeta = e.beta;
+      refGamma = e.gamma;
+      setStatus('');
+    }
+    const gx = clamp((e.gamma - refGamma) / 25, -1, 1);
+    const gy = clamp((e.beta  - refBeta)  / 25, -1, 1);
     state.targetX = -gx * RANGE;
     state.targetY = -gy * RANGE;
   }
@@ -37,8 +44,21 @@
     state.targetY = -cy * RANGE * 2;
   }
 
+  function setStatus(text) {
+    if (!status) return;
+    status.textContent = text;
+    status.hidden = !text;
+  }
+
   function startOrientation() {
     window.addEventListener('deviceorientation', onOrientation);
+    // If no orientation event arrives within a couple of seconds, tell the
+    // user — better than a silently broken page.
+    setTimeout(() => {
+      if (!receivedAny) {
+        setStatus("This browser isn't sending orientation events. Try Chrome, and make sure sensor access is on for this site.");
+      }
+    }, 2500);
   }
 
   function startMouse() {
@@ -47,8 +67,8 @@
 
   async function requestPermissionAndStart() {
     try {
-      const state = await DeviceOrientationEvent.requestPermission();
-      if (state === 'granted') {
+      const res = await DeviceOrientationEvent.requestPermission();
+      if (res === 'granted') {
         startOrientation();
         permissionBtn.hidden = true;
       } else {
@@ -59,23 +79,27 @@
     }
   }
 
-  // Wire up inputs based on capability.
+  // On Android, deviceorientation events sometimes require a user gesture
+  // before they'll start firing. Show the same tap-to-start button for all
+  // touch devices to make the behavior consistent.
+  function startFromTap() {
+    startOrientation();
+    permissionBtn.hidden = true;
+  }
+
   const needsPermission =
     typeof DeviceOrientationEvent !== 'undefined' &&
     typeof DeviceOrientationEvent.requestPermission === 'function';
-
   const hasOrientation = 'DeviceOrientationEvent' in window;
   const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
 
   if (needsPermission) {
-    // iOS 13+: show the button, wait for tap.
     permissionBtn.hidden = false;
     permissionBtn.addEventListener('click', requestPermissionAndStart);
   } else if (hasOrientation && isCoarsePointer) {
-    // Android / any touch device that exposes orientation without permission.
-    startOrientation();
+    permissionBtn.hidden = false;
+    permissionBtn.addEventListener('click', startFromTap);
   } else {
-    // Desktop / laptop: fall back to mouse parallax.
     startMouse();
   }
 
